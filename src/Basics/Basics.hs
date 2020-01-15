@@ -1,29 +1,27 @@
 module Basics.Basics
   ( hexToBase64
   , fixedXOR
-  , findSingleCharXOR
-  , checkChar
+  , findCharKey
+  , decodeCharKey
   ) where
 
 import Data.List ( sortOn )
-import Data.Bits ( xor )
 import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString as B
-import Lib ( hexDecode, hexEncode, chiSquared, decodeSingleCharXOR )
+import qualified Data.ByteString.Char8 as B
+import Lib ( hexDecode, hexEncode, xorPair, chiSquared )
 
 hexToBase64 :: B.ByteString -> B.ByteString
 hexToBase64 = B64.encode . hexDecode
 
 fixedXOR :: B.ByteString -> B.ByteString -> B.ByteString
 fixedXOR key input =
-  hexEncode $ B.pack $ B.zipWith xor (hexDecode key) (hexDecode input)
+  hexEncode $ xorPair (hexDecode key) (hexDecode input)
 
-findSingleCharXOR :: B.ByteString -> Char
-findSingleCharXOR input =
-  fst. head . sortOn snd . map (\c -> (c, testKey input c)) $ enumFromTo 'A' 'Z'
+findCharKey :: B.ByteString -> Char
+findCharKey input =
+  fst. head . sortOn snd . map (\key -> (key, testKey key input)) $ enumFromTo 'A' 'Z'
   where
-    testKey text c = chiSquared $ decodeSingleCharXOR text c
+    testKey key text = chiSquared $ decodeCharKey key text
 
-
-checkChar :: B.ByteString -> Char -> B.ByteString
-checkChar = decodeSingleCharXOR
+decodeCharKey :: Char -> B.ByteString -> B.ByteString
+decodeCharKey key input = xorPair (B.replicate (B.length input) key) (hexDecode input)

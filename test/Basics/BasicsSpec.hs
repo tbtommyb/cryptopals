@@ -15,5 +15,7 @@ spec = do
       fixedXOR "686974207468652062756c6c277320657965" "1c0111001f010100061a024b53535009181c" `shouldBe` "746865206b696420646f6e277420706c6179"
   describe "S1C3: find the key character" $ do
     it "finds the correct character" $ do
-      findSingleCharXOR "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+      findCharKey "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
       `shouldBe` 'X'
+    it "generates the correct output" $ do
+      decodeCharKey 'X' "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736" `shouldBe` "Cooking MC's like a pound of bacon"

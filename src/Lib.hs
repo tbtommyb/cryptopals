@@ -1,14 +1,13 @@
 module Lib
     ( hexDecode
     , hexEncode
+    , xorPair
     , chiSquared
-    , decodeSingleCharXOR
     ) where
 
 import Data.Function ( on )
 import Data.Bits ( xor )
 import Data.Char ( isLetter, toUpper, ord, chr )
--- import qualified Data.ByteString as B
 import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Char8 as B
 
@@ -28,20 +27,19 @@ englishFrequencies = [
 
 chiSquared :: B.ByteString -> Float
 chiSquared input =
-  foldr (\char t -> t + computeChi cleanLen char) 0.0 $ getCharCount cleaned
+  foldr sumChi 0.0 $ getCharCount cleaned
   where
     cleaned = B.filter isLetter $ B.map toUpper input
-    cleanLen = B.length cleaned
+    sumChi charCount total = total + computeChi charCount (B.length cleaned)
 
-computeChi :: Int -> (Char, Int) -> Float
-computeChi len (char, observed) =
+computeChi :: (Char, Int) -> Int -> Float
+computeChi (c, observed) len =
   (fromIntegral observed - expected)**2 / expected
   where
-    expected = fromIntegral len * (englishFrequencies !! (ord char - 65))
+    expected = fromIntegral len * (englishFrequencies !! (ord c - 65))
 
 getCharCount :: B.ByteString -> [(Char, Int)]
 getCharCount = map (\x -> (B.head x, B.length x)) . B.group . B.sort
 
-decodeSingleCharXOR :: B.ByteString -> Char -> B.ByteString
-decodeSingleCharXOR input key =
-  B.pack $ B.zipWith (fmap chr . xor `on` ord) (hexDecode input) (B.replicate (B.length input) key)
+xorPair :: B.ByteString -> B.ByteString -> B.ByteString
+xorPair a b = B.pack $ B.zipWith (fmap chr . xor `on` ord) a b
