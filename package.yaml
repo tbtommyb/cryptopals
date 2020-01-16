@@ -23,6 +23,7 @@ dependencies:
 - base64-bytestring
 - base16-bytestring
 - utf8-string
+- hashmap
 
 library:
   source-dirs: src

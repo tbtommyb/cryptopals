@@ -3,25 +3,41 @@ module Basics.Basics
   , fixedXOR
   , findCharKey
   , decodeCharKey
+  , findXorLine
+  , Base64(..)
+  , Base16(..)
   ) where
 
-import Data.List ( sortOn )
+import Control.Monad ( liftM )
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as B
-import Lib ( hexDecode, hexEncode, xorPair, chiSquared )
+import Lib
+  ( hexDecode
+  , hexEncode
+  , xorPair
+  , readLines
+  , searchForKey
+  , decode
+  , findBest
+  , DecodeAttempt(..)
+  , Base16(..)
+  , Base64(..)
+  )
 
-hexToBase64 :: B.ByteString -> B.ByteString
-hexToBase64 = B64.encode . hexDecode
+hexToBase64 :: Base16 -> Base64
+hexToBase64 = Base64 . B64.encode . hexDecode
 
-fixedXOR :: B.ByteString -> B.ByteString -> B.ByteString
+fixedXOR :: Base16 -> Base16 -> Base16
 fixedXOR key input =
   hexEncode $ xorPair (hexDecode key) (hexDecode input)
 
-findCharKey :: B.ByteString -> Char
-findCharKey input =
-  fst. head . sortOn snd . map (\key -> (key, testKey key input)) $ enumFromTo 'A' 'Z'
-  where
-    testKey key text = chiSquared $ decodeCharKey key text
+findCharKey :: Base16 -> Char
+findCharKey = attemptKey . searchForKey . hexDecode
 
-decodeCharKey :: Char -> B.ByteString -> B.ByteString
-decodeCharKey key input = xorPair (B.replicate (B.length input) key) (hexDecode input)
+decodeCharKey :: Char -> Base16 -> B.ByteString
+decodeCharKey key text = decode key $ hexDecode text
+
+findXorLine :: FilePath -> IO (B.ByteString)
+findXorLine path = do
+  attempts <- liftM (map $ searchForKey . hexDecode) $ readLines path
+  return . attemptOutput . findBest $ attempts
