@@ -78,3 +78,4 @@ decode key input = xorPair (B.replicate (B.length input) key) input
 
 readLines :: FilePath -> IO [Base16]
 readLines = fmap ((map Base16) . B.lines) . B.readFile
+
