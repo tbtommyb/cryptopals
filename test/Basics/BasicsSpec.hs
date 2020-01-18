@@ -21,7 +21,7 @@ spec = do
       decodeCharKey 'X' (Base16 "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736") `shouldBe` "Cooking MC's like a pound of bacon"
   describe "S1C4: finding the single-character XOR line" $ do
     it "finds the correct line" $ do
-      bestOutput <- findXorLine "test/Basics/4.txt"
+      bestOutput <- findXORLine "test/Basics/4.txt"
       bestOutput `shouldBe` "Now that the party is jumping\n"
   describe "S1C5: Repeating-key XOR" $ do
     it "encrypts correctly" $ do

@@ -1,11 +1,10 @@
--- TODO: change xorPair to work on single char pair
 -- TODO: create Key, EncryptedText, DecryptedText types
 module Basics.Basics
   ( hexToBase64
   , fixedXOR
   , findCharKey
   , decodeCharKey
-  , findXorLine
+  , findXORLine
   , repeatingXOR
   , Base64(..)
   , Base16(..)
@@ -40,13 +39,12 @@ findCharKey = attemptKey . searchForKey . hexDecode
 decodeCharKey :: Char -> Base16 -> B.ByteString
 decodeCharKey key text = decode key $ hexDecode text
 
-findXorLine :: FilePath -> IO (B.ByteString)
-findXorLine path = do
+findXORLine :: FilePath -> IO (B.ByteString)
+findXORLine path = do
   attempts <- liftM (map $ searchForKey . hexDecode) $ readLines path
   return . attemptOutput . findBest $ attempts
 
-repeatingXOR :: String -> String -> Base16
-repeatingXOR key text = hexEncode $ xorPair (B.pack $ take len $ cycle key) input
+repeatingXOR :: B.ByteString -> B.ByteString -> Base16
+repeatingXOR key text = hexEncode $ xorPair repeatedKey text
   where
-    input = B.pack text
-    len = length text
+    repeatedKey = B.pack . take (B.length text) . cycle . B.unpack $ key
