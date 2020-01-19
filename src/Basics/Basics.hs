@@ -6,6 +6,7 @@ module Basics.Basics
   , decodeCharKey
   , findXORLine
   , repeatingXOR
+  , hammingDistance
   , Base64(..)
   , Base16(..)
   ) where
@@ -21,6 +22,7 @@ import Lib
   , searchForKey
   , decode
   , findBest
+  , hammingWeight
   , DecodeAttempt(..)
   , Base16(..)
   , Base64(..)
@@ -48,3 +50,6 @@ repeatingXOR :: B.ByteString -> B.ByteString -> Base16
 repeatingXOR key text = hexEncode $ xorPair repeatedKey text
   where
     repeatedKey = B.pack . take (B.length text) . cycle . B.unpack $ key
+
+hammingDistance :: B.ByteString -> B.ByteString -> Int
+hammingDistance a b = sum $ B.zipWith hammingWeight a b

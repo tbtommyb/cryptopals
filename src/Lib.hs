@@ -7,12 +7,13 @@ module Lib
     , searchForKey
     , findBest
     , decode
+    , hammingWeight
     , DecodeAttempt(..)
     , Base64(..)
     , Base16(..)
     ) where
 
-import Data.Bits ( xor )
+import Data.Bits ( popCount, xor )
 import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Char8 as B
 import Data.Char ( toUpper, ord, chr )
@@ -79,3 +80,5 @@ decode key input = xorPair (B.replicate (B.length input) key) input
 readLines :: FilePath -> IO [Base16]
 readLines = fmap ((map Base16) . B.lines) . B.readFile
 
+hammingWeight :: Char -> Char -> Int
+hammingWeight = fmap popCount . xor `on` ord
