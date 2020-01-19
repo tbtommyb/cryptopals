@@ -85,15 +85,15 @@ hammingWeight :: Char -> Char -> Int
 hammingWeight = fmap popCount . xor `on` ord
 
 guessKey :: B.ByteString -> B.ByteString
-guessKey text = decodeWithKeysize text $ fst $ head $ hammingForKeysizes text
+guessKey text = decodeKeysize text $ fst $ head $ hammingForKeysizes text [2 .. 40]
 
-decodeWithKeysize :: B.ByteString -> Int -> B.ByteString
-decodeWithKeysize text n = B.pack $ solve $ B.transpose $ chunksOf n text
+decodeKeysize :: B.ByteString -> Int -> B.ByteString
+decodeKeysize text n = B.pack $ solve $ B.transpose $ chunksOf n text
   where
     solve = map (attemptKey . searchForKey)
 
-hammingForKeysizes :: B.ByteString -> [(Int, Float)]
-hammingForKeysizes text = sortBy (comparing snd) $ map makeGuess $ enumFromTo 2 40
+hammingForKeysizes :: B.ByteString -> [Int] -> [(Int, Float)]
+hammingForKeysizes text nums = sortBy (comparing snd) $ map makeGuess nums
   where
     makeGuess n = (n, computeHammingBlock text n)
 
