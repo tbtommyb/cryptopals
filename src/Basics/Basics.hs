@@ -7,6 +7,7 @@ module Basics.Basics
   , findXORLine
   , repeatingXOR
   , hammingDistance
+  , decodeRepeatingXOR
   , Base64(..)
   , Base16(..)
   ) where
@@ -23,6 +24,7 @@ import Lib
   , decode
   , findBest
   , hammingWeight
+  , guessKey
   , DecodeAttempt(..)
   , Base16(..)
   , Base64(..)
@@ -51,5 +53,16 @@ repeatingXOR key text = hexEncode $ xorPair repeatedKey text
   where
     repeatedKey = B.pack . take (B.length text) . cycle . B.unpack $ key
 
+repeating :: B.ByteString -> B.ByteString -> B.ByteString
+repeating key text = xorPair repeatedKey text
+  where
+    repeatedKey = B.pack . take (B.length text) . cycle . B.unpack $ key
+
 hammingDistance :: B.ByteString -> B.ByteString -> Int
 hammingDistance a b = sum $ B.zipWith hammingWeight a b
+
+decodeRepeatingXOR :: FilePath -> IO (B.ByteString, B.ByteString)
+decodeRepeatingXOR path = do
+  input <- liftM (B64.decodeLenient) $ B.readFile path
+  let key = guessKey $ input
+  return (key, repeating key input)

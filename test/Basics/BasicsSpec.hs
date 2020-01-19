@@ -29,3 +29,6 @@ spec = do
   describe "S1C5 Break repeating-key XOR" $ do
     it "computes the Hamming distance correctly" $ do
       hammingDistance "this is a test" "wokka wokka!!!" `shouldBe` 37
+    it "guesses the correct key for the input" $ do
+      guess <- decodeRepeatingXOR "test/Basics/6.txt"
+      fst guess `shouldBe` "Terminator X: Bring thb noise" -- we can guess the real key

@@ -8,6 +8,7 @@ module Lib
     , findBest
     , decode
     , hammingWeight
+    , guessKey
     , DecodeAttempt(..)
     , Base64(..)
     , Base16(..)
@@ -18,7 +19,7 @@ import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Char8 as B
 import Data.Char ( toUpper, ord, chr )
 import Data.Function ( on )
-import Data.List ( sortBy )
+import Data.List ( sortBy, unfoldr )
 import Data.Ord ( comparing )
 import qualified Data.HashMap as Map
 
@@ -82,3 +83,33 @@ readLines = fmap ((map Base16) . B.lines) . B.readFile
 
 hammingWeight :: Char -> Char -> Int
 hammingWeight = fmap popCount . xor `on` ord
+
+guessKey :: B.ByteString -> B.ByteString
+guessKey text = decodeWithKeysize text $ fst $ head $ hammingForKeysizes text
+
+decodeWithKeysize :: B.ByteString -> Int -> B.ByteString
+decodeWithKeysize text n = B.pack $ solve $ B.transpose $ chunksOf n text
+  where
+    solve = map (attemptKey . searchForKey)
+
+hammingForKeysizes :: B.ByteString -> [(Int, Float)]
+hammingForKeysizes text = sortBy (comparing snd) $ map makeGuess $ enumFromTo 2 40
+  where
+    makeGuess n = (n, computeHammingBlock text n)
+
+computeHammingBlock :: B.ByteString -> Int -> Float
+computeHammingBlock text n = distance / fromIntegral (length chunked) / fromIntegral n
+  where
+    distance = fromIntegral . sum $ B.zipWith hammingWeight a b
+    a = B.concat $ map snd $ filter (odd . fst) chunked
+    b = B.concat $ map snd $ filter (even . fst) chunked
+    chunked = zip [ 0::Integer .. ] $ chunksOf n text
+
+justWhen :: (a -> Bool) -> (a -> b) -> (a -> Maybe b)
+justWhen f g a = if f a then Just (g a) else Nothing
+
+nothingWhen :: (a -> Bool) -> (a -> b) -> (a -> Maybe b)
+nothingWhen f = justWhen (not . f)
+
+chunksOf :: Int -> B.ByteString -> [B.ByteString]
+chunksOf x = unfoldr (nothingWhen B.null (B.splitAt x))
