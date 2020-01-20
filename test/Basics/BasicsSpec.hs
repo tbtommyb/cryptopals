@@ -7,7 +7,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Base64 as B64
 import Test.Hspec
 import Basics.Basics
-import Lib ( readLines )
+import Lib ( readLines, hexDecode )
 
 spec :: Spec
 spec = do
@@ -25,8 +25,8 @@ spec = do
       decodeCharKey 'X' (Base16 "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736") `shouldBe` "Cooking MC's like a pound of bacon"
   describe "S1C4: finding the single-character XOR line" $ do
     it "finds the correct line" $ do
-      bestOutput <- findXORLine "test/Basics/4.txt"
-      bestOutput `shouldBe` "Now that the party is jumping\n"
+      xs <- liftM (map hexDecode) $ readLines "test/Basics/4.txt"
+      findXORLine xs `shouldBe` "Now that the party is jumping\n"
   describe "S1C5: Repeating-key XOR" $ do
     it "encrypts correctly" $ do
       repeatingXOR "ICE" "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal" `shouldBe` (Base16 "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f")
@@ -34,13 +34,14 @@ spec = do
     it "computes the Hamming distance correctly" $ do
       hammingDistance "this is a test" "wokka wokka!!!" `shouldBe` 37
     it "guesses the correct key for the input" $ do
-      guess <- decodeRepeatingXOR "test/Basics/6.txt"
-      fst guess `shouldBe` "Terminator X: Bring thb noise" -- we can guess the real key
+      file <- liftM B64.decodeLenient $ B.readFile "test/Basics/6.txt"
+      -- guess <- decodeRepeatingXOR "test/Basics/6.txt"
+      fst (decodeRepeatingXOR file) `shouldBe` "Terminator X: Bring thb noise" -- we can guess the real key
   describe "S1C7 AES ECB decode" $ do
     it "decodes the file succesfully" $ do
       file <- liftM B64.decodeLenient $ B.readFile "test/Basics/7.txt"
       (B.take 24 $ decodeECB "YELLOW SUBMARINE" file) `shouldBe` "I'm back and I'm ringin'"
   describe "S1C8 AES ECB detection" $ do
     it "detects the ECB-encrypted line" $ do
-      lines <- readLines "test/Basics/8.txt"
-      detectECB lines `shouldBe` 132
+      xs <- readLines "test/Basics/8.txt"
+      detectECB xs `shouldBe` 132

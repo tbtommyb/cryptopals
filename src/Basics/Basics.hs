@@ -14,7 +14,6 @@ module Basics.Basics
   , Base16(..)
   ) where
 
-import Control.Monad ( liftM )
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as B
 import Data.List ( sortBy )
@@ -24,7 +23,6 @@ import Lib
   ( hexDecode
   , hexEncode
   , xorPair
-  , readLines
   , searchForKey
   , decode
   , findBest
@@ -50,10 +48,9 @@ findCharKey = attemptKey . searchForKey . hexDecode
 decodeCharKey :: Char -> Base16 -> B.ByteString
 decodeCharKey key text = decode key $ hexDecode text
 
-findXORLine :: FilePath -> IO (B.ByteString)
-findXORLine path = do
-  attempts <- liftM (map $ searchForKey . hexDecode) $ readLines path
-  return . attemptOutput . findBest $ attempts
+findXORLine :: [B.ByteString] -> B.ByteString
+findXORLine xs =
+  attemptOutput $ findBest $ map searchForKey xs
 
 repeatingXOR :: B.ByteString -> B.ByteString -> Base16
 repeatingXOR key text = hexEncode $ xorPair repeatedKey text
@@ -68,11 +65,9 @@ repeating key text = xorPair repeatedKey text
 hammingDistance :: B.ByteString -> B.ByteString -> Int
 hammingDistance a b = sum $ B.zipWith hammingWeight a b
 
-decodeRepeatingXOR :: FilePath -> IO (B.ByteString, B.ByteString)
-decodeRepeatingXOR path = do
-  input <- liftM (B64.decodeLenient) $ B.readFile path
-  let key = guessKey $ input
-  return (key, repeating key input)
+decodeRepeatingXOR :: B.ByteString -> (B.ByteString, B.ByteString)
+decodeRepeatingXOR input =
+  (key, repeating key input) where key = guessKey input
 
 decodeECB :: B.ByteString -> B.ByteString -> B.ByteString
 decodeECB key text = ecbDecrypt (initAES128 key) text
