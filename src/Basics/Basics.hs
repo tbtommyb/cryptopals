@@ -8,6 +8,7 @@ module Basics.Basics
   , repeatingXOR
   , hammingDistance
   , decodeRepeatingXOR
+  , decodeAES
   , Base64(..)
   , Base16(..)
   ) where
@@ -15,6 +16,7 @@ module Basics.Basics
 import Control.Monad ( liftM )
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as B
+import Crypto.Cipher
 import Lib
   ( hexDecode
   , hexEncode
@@ -25,6 +27,7 @@ import Lib
   , findBest
   , hammingWeight
   , guessKey
+  , initAES128
   , DecodeAttempt(..)
   , Base16(..)
   , Base64(..)
@@ -66,3 +69,7 @@ decodeRepeatingXOR path = do
   input <- liftM (B64.decodeLenient) $ B.readFile path
   let key = guessKey $ input
   return (key, repeating key input)
+
+decodeAES :: B.ByteString -> B.ByteString -> B.ByteString
+decodeAES key text = ecbDecrypt (initAES128 key) text
+

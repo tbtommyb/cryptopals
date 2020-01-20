@@ -24,6 +24,7 @@ dependencies:
 - base16-bytestring
 - utf8-string
 - hashmap
+- cryptocipher
 
 library:
   source-dirs: src

@@ -9,6 +9,7 @@ module Lib
     , decode
     , hammingWeight
     , guessKey
+    , initAES128
     , DecodeAttempt(..)
     , Base64(..)
     , Base16(..)
@@ -21,6 +22,7 @@ import Data.Char ( toUpper, ord, chr )
 import Data.Function ( on )
 import Data.List ( sortBy, unfoldr )
 import Data.Ord ( comparing )
+import Crypto.Cipher
 import qualified Data.HashMap as Map
 
 data DecodeAttempt = DecodeAttempt
@@ -113,3 +115,6 @@ nothingWhen f = justWhen (not . f)
 
 chunksOf :: Int -> B.ByteString -> [B.ByteString]
 chunksOf x = unfoldr (nothingWhen B.null (B.splitAt x))
+
+initAES128 :: B.ByteString -> AES128
+initAES128 = either (error . show) cipherInit . makeKey

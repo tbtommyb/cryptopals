@@ -2,6 +2,9 @@
 
 module Basics.BasicsSpec (spec) where
 
+import Control.Monad ( liftM )
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Base64 as B64
 import Test.Hspec
 import Basics.Basics
 
@@ -32,3 +35,7 @@ spec = do
     it "guesses the correct key for the input" $ do
       guess <- decodeRepeatingXOR "test/Basics/6.txt"
       fst guess `shouldBe` "Terminator X: Bring thb noise" -- we can guess the real key
+  describe "S1C6 AES ECB decode" $ do
+    it "decodes the file succesfully" $ do
+      file <- liftM B64.decodeLenient $ B.readFile "test/Basics/7.txt"
+      (B.take 24 $ decodeAES "YELLOW SUBMARINE" file) `shouldBe` "I'm back and I'm ringin'"
