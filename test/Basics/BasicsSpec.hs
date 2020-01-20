@@ -7,6 +7,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Base64 as B64
 import Test.Hspec
 import Basics.Basics
+import Lib ( readLines )
 
 spec :: Spec
 spec = do
@@ -29,13 +30,17 @@ spec = do
   describe "S1C5: Repeating-key XOR" $ do
     it "encrypts correctly" $ do
       repeatingXOR "ICE" "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal" `shouldBe` (Base16 "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f")
-  describe "S1C5 Break repeating-key XOR" $ do
+  describe "S1C6 Break repeating-key XOR" $ do
     it "computes the Hamming distance correctly" $ do
       hammingDistance "this is a test" "wokka wokka!!!" `shouldBe` 37
     it "guesses the correct key for the input" $ do
       guess <- decodeRepeatingXOR "test/Basics/6.txt"
       fst guess `shouldBe` "Terminator X: Bring thb noise" -- we can guess the real key
-  describe "S1C6 AES ECB decode" $ do
+  describe "S1C7 AES ECB decode" $ do
     it "decodes the file succesfully" $ do
       file <- liftM B64.decodeLenient $ B.readFile "test/Basics/7.txt"
-      (B.take 24 $ decodeAES "YELLOW SUBMARINE" file) `shouldBe` "I'm back and I'm ringin'"
+      (B.take 24 $ decodeECB "YELLOW SUBMARINE" file) `shouldBe` "I'm back and I'm ringin'"
+  describe "S1C8 AES ECB detection" $ do
+    it "detects the ECB-encrypted line" $ do
+      lines <- readLines "test/Basics/8.txt"
+      detectECB lines `shouldBe` 132

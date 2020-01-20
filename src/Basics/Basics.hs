@@ -8,7 +8,8 @@ module Basics.Basics
   , repeatingXOR
   , hammingDistance
   , decodeRepeatingXOR
-  , decodeAES
+  , decodeECB
+  , detectECB
   , Base64(..)
   , Base16(..)
   ) where
@@ -16,6 +17,8 @@ module Basics.Basics
 import Control.Monad ( liftM )
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as B
+import Data.List ( sortBy )
+import Data.Ord ( comparing )
 import Crypto.Cipher
 import Lib
   ( hexDecode
@@ -28,6 +31,7 @@ import Lib
   , hammingWeight
   , guessKey
   , initAES128
+  , duplicateChunks
   , DecodeAttempt(..)
   , Base16(..)
   , Base64(..)
@@ -70,6 +74,8 @@ decodeRepeatingXOR path = do
   let key = guessKey $ input
   return (key, repeating key input)
 
-decodeAES :: B.ByteString -> B.ByteString -> B.ByteString
-decodeAES key text = ecbDecrypt (initAES128 key) text
+decodeECB :: B.ByteString -> B.ByteString -> B.ByteString
+decodeECB key text = ecbDecrypt (initAES128 key) text
 
+detectECB :: [Base16] -> Int
+detectECB l =  fst $ head $ sortBy (flip $ comparing snd) $ zip [0 .. length l] $ map duplicateChunks $ map hexDecode l

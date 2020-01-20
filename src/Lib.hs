@@ -10,6 +10,7 @@ module Lib
     , hammingWeight
     , guessKey
     , initAES128
+    , duplicateChunks
     , DecodeAttempt(..)
     , Base64(..)
     , Base16(..)
@@ -21,8 +22,9 @@ import qualified Data.ByteString.Char8 as B
 import Data.Char ( toUpper, ord, chr )
 import Data.Function ( on )
 import Data.List ( sortBy, unfoldr )
+import Data.Map (fromListWith, toList)
 import Data.Ord ( comparing )
-import Crypto.Cipher
+import Crypto.Cipher ( AES128, cipherInit, blockSize, makeKey )
 import qualified Data.HashMap as Map
 
 data DecodeAttempt = DecodeAttempt
@@ -118,3 +120,13 @@ chunksOf x = unfoldr (nothingWhen B.null (B.splitAt x))
 
 initAES128 :: B.ByteString -> AES128
 initAES128 = either (error . show) cipherInit . makeKey
+
+duplicateChunks :: B.ByteString -> Int
+duplicateChunks input = foldr countDuplicates 0 $ total
+  where
+    total = frequency $ chunksOf (blockSize (undefined :: AES128)) input
+    countDuplicates (_, n) acc = if n > 1 then n + acc else acc
+
+
+frequency :: (Ord a) => [a] -> [(a, Int)]
+frequency xs = toList (fromListWith (+) [(x, 1) | x <- xs])

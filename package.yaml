@@ -25,6 +25,7 @@ dependencies:
 - utf8-string
 - hashmap
 - cryptocipher
+- containers
 
 library:
   source-dirs: src
